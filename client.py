@@ -9,18 +9,25 @@ class wsc:
 	def on_message(self, ws, message):
 		if message=='pong':
 			self.pong=True
+		else:
+			self.query.append(message)		
 #		print(message)
 
 	def on_error(self, ws, error):
 		if error=='Connection to remote host was lost.':
 			restart(self)
-		print('error:',error)
+		elif '[Errno 111]' in error:
+			time.sleep(5)
+		else:
+			print('error:',error)
 
 	def on_close(self, ws):
-		print("### closed ###")
+		pass
+#		print("### closed ###")
 
 	def on_open(self, ws):
-		print("### open ###")
+		pass
+#		print("### open ###")
 
 	def __init__(self, url):
 #	websocket.enableTrace(True)
@@ -32,19 +39,31 @@ class wsc:
 		)
 		self.pong=True
 		self.url=url
+		self.query=[]
 		thread.start_new_thread(self.ws.run_forever, ())
-	def send(self, value, n=5):
+	def send(self, value, ttl=5):
 		try:
 			return self.ws.send(value)
 		except:
 			restart(self)
-			if n==0:
+			if ttl==0:
 				return
-			return self.send(value, n-1)
+			return self.send(value, ttl-1)
 	def close(self):
 		self.ws.close()
 		self.on_close(self.ws)
 
+	def recv(self, timeout=None, interval=0.01):
+		i=0
+		while not len(self.query):
+			time.sleep(interval)
+			if timeout != None and i>=timeout/interval:
+				break
+			i+=1
+		try:
+			return self.query.pop(0)
+		except:
+			pass
 def pinger(ws):
 	while True:
 		time.sleep(5)
@@ -55,14 +74,7 @@ def pinger(ws):
 
 def restart(ws):
 	ws.close()
-	ws.ws=websocket.WebSocketApp(ws.url,
-		on_open = ws.on_open,
-		on_message = ws.on_message,
-		on_error = ws.on_error,
-		on_close = ws.on_close
-	)
-	ws.pong=True
-	thread.start_new_thread(ws.ws.run_forever, ())
+	ws.__init__(ws.url)
 	time.sleep(0.5)
 
 if __name__ == "__main__":

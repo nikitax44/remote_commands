@@ -1,87 +1,87 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python
 import asyncio
 import websockets
 import pyautogui as pg
 import pulse
+import json
+import time
 #from time import sleep
 
+try:
+	with open('rules.json') as f:
+		raw_comms=f.read()
+	buf=json.loads(raw_comms)
+	comms={}
+	for i in buf:
+		try:
+			comms[str(i.get('keyCode'))]=i.get('exec','print("unhandled key")')
+		except:
+			pass
+except:
+	print('fatal error: cannot find and/or parse rules.json')
+	exit(1)
 
-async def print_all(w,p):
+async def client_consumer(w,p):
+	'''
+	commands must be in format:
+	<command> <arg1> <arg2> etc.
+	
+	eg:
+	ping
+	or
+	key 0
+	or
+	text hi hello
+	'''
 	await w.send('')
 	try:
 		async for m in w:
 #		print(m)
-			if m=='ping':
-				await w.send('pong')
-			else:
-				consume(m)
-	except:
+			try:
+				command, *args=m.split()
+				if command=='ping':
+					await w.send('pong')
+				elif command=='key':
+					ret=consume(args)
+					if ret!=None:
+						try:
+							await w.send(ret)
+						except Exception as ex:
+							print(type(ex), ex)
+				elif command=='get':
+					ret=get_val(args)
+					if ret!=None:
+						try:
+							await w.send(ret)
+						except Exception as ex:
+							print(type(ex), ex)
+				else:
+					raise ValueError('unknown command: '+str(m)) # if it raises, it will be catched
+			except Exception as ex:																	# < by this except 
+				print(type(ex),ex)
+	except websockets.exceptions.ConnectionClosedError:
 		pass
+	except Exception as ex:
+		print(type(ex),ex)
 
 def consume(m):
 	try:
-		if False: pass
-		elif m.startswith('k'):
-			code=int(m[1:])
-			if code==0:
-				print('mute')
-				pulse.set_mute(2)
-			elif code==1:
-				print('volumedown')
-				pulse.mod_volume(-0.1)
-			elif code==2:
-				print('volumeup')
-				pulse.mod_volume(0.1)
-			elif code==3:
-				print('pause')
-				pg.press('space')
-			elif code==4:
-				print('previous video')
-				pg.hotkey('shift','p')
-			elif code==5:
-				print('next video')
-				pg.hotkey('shift','n')
-			elif code==6:
-				print('left')
-				pg.press('left')
-			elif code==7:
-				print('right')
-				pg.press('right')
-			elif code==8:
-				print('fullscreen')
-				pg.press('f')
-			elif code==9:
-				print('info')
-				pg.move(1, 0)
-				pg.move(-1, 0)
-			elif code==16:
-				print('mouse left')
-				pg.move(-10,0)
-			elif code==17:
-				print('mouse right')
-				pg.move(10,0)
-			elif code==18:
-				print('mouse up')
-				pg.move(0,-10)
-			elif code==19:
-				print('mouse down')
-				pg.move(0,10)
-			elif code==20:
-				print('mouse click')
-				pg.click()
-			else:
-				print('error: unknow keycode',m)
-		else:
-			print('invaud command',m)
+		m=list(m)
+		code=str(m.pop(0))
+		print('start command')
+		exec(comms.get(code, "print('error: unknown keycode')"), {'args':m, 'pulse':pulse, 'pg':pg, 'time':time})
 	except pg.FailSafeException:
 		pass
 	except Exception as ex:
 		print('error:',m,type(ex),ex)
 
+def get_val(args):
+	return raw_comms
+
 
 if __name__=='__main__':
-	try:
-		start_server = websockets.serve(print_all, "0.0.0.0", 8081)
+	try:	
+		start_server = websockets.serve(client_consumer, "0.0.0.0", 8081)
 		asyncio.get_event_loop().run_until_complete(start_server)
 		asyncio.get_event_loop().run_forever()
 	except KeyboardInterrupt:
