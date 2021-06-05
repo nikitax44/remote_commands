@@ -58,19 +58,24 @@ class wsc:
 		while not len(self.query):
 			time.sleep(interval)
 			if timeout != None and i>=timeout/interval:
+				self.ping()
 				break
 			i+=1
 		try:
 			return self.query.pop(0)
 		except:
 			pass
+		
+	def ping(self):
+		self.send('ping')
+		time.sleep(5)
+		if not self.pong:
+			restart(self)
+
 def pinger(ws):
 	while True:
 		time.sleep(5)
-		ws.send('ping')
-		time.sleep(5)
-		if not ws.pong:
-			restart(ws)
+		ws.ping
 
 def restart(ws):
 	ws.close()

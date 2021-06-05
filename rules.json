@@ -2,6 +2,7 @@
 	{
 		"comment":"key that mutes the sound",
 		"keyName":"mute",
+		"Name":"MUTE",
 		"keyCode":0,
 		"exec":"pulse.set_mute(2)",
 		"pos":{"x":1, "y":6}
@@ -9,6 +10,7 @@
 	{
 		"comment":"key that reduces the sound",
 		"keyName":"vold",
+		"Name":"VOL DN",
 		"keyCode":1,
 		"exec":"pulse.mod_volume(-0.1)",
 		"pos":{"x":0, "y":6}
@@ -16,6 +18,7 @@
 	{
 		"comment":"key that increases the sound",
 		"keyName":"volu",
+		"Name":"VOL UP",
 		"keyCode":2,
 		"exec":"pulse.mod_volume(0.1)",
 		"pos":{"x":2, "y":6}
@@ -23,6 +26,7 @@
 	{
 		"comment":"presses space",
 		"keyName":"pause",
+		"Name":"⏯",
 		"keyCode":3,
 		"exec":"pg.press('space')",
 		"pos":{"x":1, "y":5}
@@ -30,6 +34,7 @@
 	{
 		"comment":"presses shift+p",
 		"keyName":"prev",
+		"Name":"⏮",
 		"keyCode":4,
 		"exec":"pg.hotkey('shift', 'p')",
 		"pos":{"x":0, "y":5}
@@ -37,6 +42,7 @@
 	{
 		"comment":"presses shift+n",
 		"keyName":"next",
+		"Name":"⏭",
 		"keyCode":5,
 		"exec":"pg.hotkey('shift', 'n')",
 		"pos":{"x":2, "y":5}
@@ -44,6 +50,7 @@
 	{
 		"comment":"presses left",
 		"keyName":"back",
+		"Name":"⭠",
 		"keyCode":6,
 		"exec":"pg.press('left')",
 		"pos":{"x":0, "y":4}
@@ -51,6 +58,7 @@
 	{
 		"comment":"presses right",
 		"keyName":"forw",
+		"Name":"⭢",
 		"keyCode":7,
 		"exec":"pg.press('right')",
 		"pos":{"x":2, "y":4}
@@ -58,6 +66,7 @@
 	{
 		"comment":"presses f",
 		"keyName":"full",
+		"Name":"⤢",
 		"keyCode":8,
 		"exec":"pg.press('f')",
 		"pos":{"x":1, "y":4}
@@ -65,6 +74,7 @@
 	{
 		"comment":"touches the mouse",
 		"keyName":"info",
+		"Name":"ⓘ",
 		"keyCode":9,
 		"exec":"pg.move(1, 0);pg.move(-1,0)",
 		"pos":{"x":1, "y":3}

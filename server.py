@@ -21,6 +21,8 @@ except:
 	print('fatal error: cannot find and/or parse rules.json')
 	exit(1)
 
+
+
 async def client_consumer(w,p):
 	'''
 	commands must be in format:
@@ -57,9 +59,11 @@ async def client_consumer(w,p):
 							print(type(ex), ex)
 				else:
 					raise ValueError('unknown command: '+str(m)) # if it raises, it will be catched
+			except (websockets.exceptions.ConnectionClosedError,):
+				pass
 			except Exception as ex:																	# < by this except 
 				print(type(ex),ex)
-	except websockets.exceptions.ConnectionClosedError:
+	except (websockets.exceptions.ConnectionClosedError,):
 		pass
 	except Exception as ex:
 		print(type(ex),ex)
@@ -68,10 +72,13 @@ def consume(m):
 	try:
 		m=list(m)
 		code=str(m.pop(0))
-		print('start command')
-		exec(comms.get(code, "print('error: unknown keycode')"), {'args':m, 'pulse':pulse, 'pg':pg, 'time':time})
+		command=comms.get(code, "print('error: unknown keycode')")
+		print('start command:',command)
+		exec(command, {'args':m, 'pulse':pulse, 'pg':pg, 'time':time})
 	except pg.FailSafeException:
 		pass
+	except pulse.pc.pulsectl.PulseError:
+		print('Failed to connect to pulseaudio server')
 	except Exception as ex:
 		print('error:',m,type(ex),ex)
 

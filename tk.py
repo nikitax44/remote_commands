@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 import tkinter as tk
 import client as ws
 import json
@@ -6,8 +7,8 @@ import json
 
 class window:
 	def __init__(self):
-		bheight=1
-		bwidth =5
+		bheight=2
+		bwidth =10
 		self.window=tk.Tk()
 		self.window.title('Remote Keys')
 
@@ -21,7 +22,7 @@ class window:
 				comms={}
 				for i in buf:
 					try:
-						comms[str(i.get('keyCode'))]=(i.get('keyName'),i.get('pos'))
+						comms[str(i.get('keyCode'))]=(i.get('Name'),i.get('pos'))
 					except:
 						pass
 				break
@@ -38,9 +39,14 @@ class window:
 			y=buf['y']
 			if y>maxy:
 				maxy=y
-			tk.Button(self.window, text=text , width=bwidth, height=bheight, command=(lambda: self.ws.send('key '+str(id)))).grid(column=x, row=y)
+			def buf(i):
+				tk.Button(
+					self.window, text=text , width=bwidth, height=bheight,
+					command=(lambda: self.ws.send('key '+str(i)))
+				).grid(column=x, row=y)
+			buf(id)
 
-		# exit
+		# exit button
 		key_exit=tk.Button(self.window, text="EXIT" , width=bwidth, height=bheight, command=self.window.quit )
 
 		key_exit.grid(column=1, row=maxy+1)
