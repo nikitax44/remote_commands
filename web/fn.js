@@ -19,22 +19,6 @@
  */
 
 
-const KEY_VOLUME_MUTE = 0;
-const KEY_VOLUME_DOWN = 1;
-const KEY_VOLUME_UP = 2;
-const KEY_MEDIA_PLAY_PAUSE = 3;
-const KEY_MEDIA_PREV_TRACK = 4;
-const KEY_MEDIA_NEXT_TRACK = 5;
-const KEY_BACK = 6;
-const KEY_FORWARD = 7;
-const KEY_FULLSCREEN = 8;
-const KEY_INFO = 9;
-
-const KEY_LEFT = 16;
-const KEY_RIGHT = 17;
-const KEY_UP = 18;
-const KEY_DOWN = 19;
-const KEY_CLICK = 20;
 
 
 let ws;
@@ -56,6 +40,38 @@ function ping(){
 	setTimeout(pong_, 5000);
 }
 
+function builder(data){
+	let keys=document.getElementById('keys');
+	function add_element(el){
+		while (keys.childElementCount<=el.pos.y) {
+			let buf=document.createElement('div');
+			buf.setAttribute('class', 'buttons');
+			keys.appendChild(buf);
+		};
+		let hor=keys.children[el.pos.y];
+		while (hor.childElementCount<=el.pos.x) {
+			let buf=document.createElement('button');
+			hor.appendChild(buf);
+		};
+		let elem=hor.children[el.pos.x];
+		elem.setAttribute('id', el.keyName);
+		elem.setAttribute('key_id', el.keyCode);
+		elem.innerText=el.Name;
+	};
+	function remove_unused(block){
+		function remove_unused_local(bt){
+			if (bt.getAttribute('id')==undefined){
+				bt.parentElement.removeChild(bt);
+			};
+		};
+
+		Array.from(block.children).forEach(remove_unused_local)
+	};
+	data.forEach(add_element);
+	Array.from(keys.children).forEach(remove_unused)
+	console.log(data)
+};
+
 function init(){
 	let opening = document.getElementById("opening");
 	let closed = document.getElementById("closed");
@@ -71,42 +87,43 @@ function init(){
 	if (ws) {
 		ws.close();
 	};
+	
+	function consume(data) {
+		let buf=JSON.parse(data);
+		builder(buf);
+		buf.forEach(function(e) {
+			let buf_=document.getElementById(e.keyName);
+			buf_.setAttribute('key_id', e.keyCode)
+			buf_.addEventListener("click", function() {
+				ws.send("key " + buf_.getAttribute('key_id'));
+			});
+		});
+	};
 
 	ws = new WebSocket("ws://"+window.location.hostname+':'+(+window.location.port+1)+'/ws');
 	ws.onmessage = function(evt) {
 		if (evt.data=='pong') {
 			pong = true;
+			return;
 		};
-		clearTimeout(timerid)
+		if (!authenticated){
+			ws.send('get')
+		};
+		
+		clearTimeout(timerid);
 		authenticated = true;
-		showScene(keys)
+		showScene(keys);
+
+		if (evt.data.trim()=='') {
+			return;
+		};
+		if (evt.data[0]=='['){
+			consume(evt.data);
+		};
 	};
 	ws.onclose = function() {
-		authenticated = false;
 		showScene(closed);
 	};
-
-	[
-		{id: "back", key: KEY_BACK},
-		{id: "fullscreen", key: KEY_FULLSCREEN},
-		{id: "forward", key: KEY_FORWARD},
-		{id: "prevtrackbutton", key: KEY_MEDIA_PREV_TRACK},
-		{id: "playpausebutton", key: KEY_MEDIA_PLAY_PAUSE},
-		{id: "nexttrackbutton", key: KEY_MEDIA_NEXT_TRACK},
-		{id: "volumedownbutton", key: KEY_VOLUME_DOWN},
-		{id: "volumemutebutton", key: KEY_VOLUME_MUTE},
-		{id: "volumeupbutton", key: KEY_VOLUME_UP},
-		{id: "infobutton", key: KEY_INFO},
-		{id: "left", key: KEY_LEFT},
-		{id: "right", key: KEY_RIGHT},
-		{id: "up", key: KEY_UP},
-		{id: "down", key: KEY_DOWN},
-		{id: "click", key: KEY_CLICK},
-	].forEach(function(o) {
-		document.getElementById(o.id).addEventListener("click", function() {
-			ws.send("k" + o.key);
-		});
-	});
 
 
 
@@ -126,6 +143,10 @@ window.addEventListener("load", function() {
 	window.onpopstate = function() {
 		showScene(keys)
 	};
+	
+
+
+	
 	document.getElementById("reloadbutton").addEventListener("click", function() {
 		location.reload();
 	});
