@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 import tkinter as tk
 import client as ws
 import json
@@ -6,17 +6,17 @@ import json
 
 
 class window:
-	def __init__(self):
+	def __init__(self, url):
 		bheight=2
 		bwidth =10
+		self.url=url
 		self.window=tk.Tk()
 		self.window.title('Remote Keys')
-
 		self.init_ws()
-
 		self.ws.send('get')
-		for i in range(5):
-			raw_comms=self.ws.recv(5)
+
+		for i in range(5): # read first 5 messages
+			raw_comms=self.ws.recv(5) # wait 5 seconds
 			try:
 				buf=json.loads(raw_comms)
 				comms={}
@@ -25,37 +25,41 @@ class window:
 						comms[str(i.get('keyCode'))]=(i.get('Name'),i.get('pos'))
 					except:
 						pass
+				# if data is valid json
 				break
 			except Exception as ex:
 				pass
 		else:
-			print('fatal error: cannot find and/or parse rules.json')
+			print('fatal error: cannot find and/or parse config')
 			exit(1)
 
-		maxy=-1
+		maxy=-1 # used to place EXIT button
 		for id in comms:
 			text, buf=comms[id]
 			x=buf['x']
 			y=buf['y']
 			if y>maxy:
 				maxy=y
-			def buf(i):
+			def wrapper(i): # wrapper runction
 				tk.Button(
-					self.window, text=text , width=bwidth, height=bheight,
-					command=(lambda: self.ws.send('key '+str(i)))
-				).grid(column=x, row=y)
-			buf(id)
+					self.window, text=text , width=bwidth, height=bheight, # create button with text and size
+					command=(lambda: self.ws.send('key '+str(i))) # send command to server on click
+				).grid(column=x, row=y) # place button at (x; y)
+
+			wrapper(id)
 
 		# exit button
-		key_exit=tk.Button(self.window, text="EXIT" , width=bwidth, height=bheight, command=self.window.quit )
+		key_exit=tk.Button(self.window, text="EXIT", width=bwidth, height=bheight, command=self.window.quit)
+		key_exit.grid(column=1, row=maxy+1) # place exit button after the last line
 
-		key_exit.grid(column=1, row=maxy+1)
-
-		self.window.mainloop()
+		try:
+			self.window.mainloop()
+		except:
+			self.window.quit()
 
 	def init_ws(self):
-		self.ws=ws.wsc("ws://192.168.1.237:8081/ws")
+		self.ws=ws.wsc(self.url)
 		ws.thread.start_new_thread(ws.pinger,(self.ws,))
 
 if __name__=='__main__':
-	window()
+	window("ws://192.168.1.237:8081/ws")

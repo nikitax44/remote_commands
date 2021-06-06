@@ -76,7 +76,7 @@
 		"keyName":"info",
 		"Name":"ⓘ",
 		"keyCode":9,
-		"exec":"pg.move(1, 0);pg.move(-1,0)",
+		"exec":"pg.move(1, 0)\npg.move(-1, 0)",
 		"pos":{"x":1, "y":3}
 	}
 ]
