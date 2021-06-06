@@ -13,16 +13,16 @@ class wsc:
 		elif message.strip()=='':
 			pass
 		else:
-			self.query.append(message)
+			self.queue.append(message)
 
 	def on_error(self, ws, error):
 		pass
 
 	def on_close(self, ws):
-		pass
+		self.state=2
 
 	def on_open(self, ws):
-		pass
+		self.state=1
 
 	def __init__(self, url):
 		self.ws = websocket.WebSocketApp(url,
@@ -33,7 +33,8 @@ class wsc:
 		)
 		self.pong=True
 		self.url=url
-		self.query=[]
+		self.queue=[]
+		self.state=0
 		thread.start_new_thread(self.ws.run_forever, ())
 
 	def send(self, value):
@@ -47,22 +48,28 @@ class wsc:
 
 	def recv(self, timeout=None, interval=0.01):
 		i=0
-		while not len(self.query):
+		while not len(self.queue):
 			time.sleep(interval)
 			if timeout != None and i>=timeout/interval:
 				self.ping()
 				break # break on timeout
 			i+=1
 		try:
-			return self.query.pop(0)
+			return self.queue.pop(0)
 		except:
 			pass
+	def queue_len(self):
+		return len(self.queue)
 
 	def ping(self):
 		self.send('ping')
-		time.sleep(5)
+		time.sleep(2)
 		if not self.pong:
 			restart(self)
+			
+	def wait2connect(self):
+		while self.state!=1:
+			time.sleep(0.01)
 
 def pinger(ws):
 	while True:
@@ -82,4 +89,8 @@ if __name__ == "__main__":
 		if com=='quit':
 			break
 		ws.send(com)
+		print(ws.queue)
 		time.sleep(0.01)
+		feedback=ws.recv(0.1)
+		if feedback:
+			print(feedback)

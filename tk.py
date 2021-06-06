@@ -13,10 +13,11 @@ class window:
 		self.window=tk.Tk()
 		self.window.title('Remote Keys')
 		self.init_ws()
-		self.ws.send('get')
+
 
 		for i in range(5): # read first 5 messages
-			raw_comms=self.ws.recv(5) # wait 5 seconds
+			self.ws.send('get')
+			raw_comms=self.ws.recv(1) # wait 5 seconds
 			try:
 				buf=json.loads(raw_comms)
 				comms={}
@@ -60,6 +61,7 @@ class window:
 	def init_ws(self):
 		self.ws=ws.wsc(self.url)
 		ws.thread.start_new_thread(ws.pinger,(self.ws,))
+		self.ws.wait2connect()
 
 if __name__=='__main__':
 	window("ws://192.168.1.237:8081/ws")
