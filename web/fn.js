@@ -1,35 +1,14 @@
 "use strict";
-/*
- *	Copyright (c) 2018-2019 Unrud <unrud@outlook.com>
- *
- *	This file is part of Remote-Touchpad.
- *
- *	Remote-Touchpad is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
- *
- *	Remote-Touchpad is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with Remote-Touchpad.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
-
 
 let ws;
 let timerid;
-let authenticated = false;
+let builded = false;
 let pong = false;
 
 function ping(){
-	function pong_() {
+	function pong_checker() {
 		if (!pong){
-			init();
+			location.reload();
 		};
 		pong=false;
 	};
@@ -37,7 +16,7 @@ function ping(){
 	if (ws.readyState==1){
 		ws.send('ping');
 	}
-	setTimeout(pong_, 5000);
+	setTimeout(pong_checker, 5000);
 }
 
 function builder(data){
@@ -69,7 +48,6 @@ function builder(data){
 	};
 	data.forEach(add_element);
 	Array.from(keys.children).forEach(remove_unused)
-	console.log(data)
 };
 
 function init(){
@@ -77,23 +55,25 @@ function init(){
 	let closed = document.getElementById("closed");
 	let keys = document.getElementById("keys");
 
-	showScene(opening);
 
 	function showScene(scene) {
 		[opening, closed, keys].forEach(function(e) {
 			e.classList.toggle("hidden", e != scene);
 		});
-	}
+	};
+
 	if (ws) {
 		ws.close();
 	};
-	
+
+	showScene(opening);
+
 	function consume(data) {
 		let buf=JSON.parse(data);
 		builder(buf);
 		buf.forEach(function(e) {
 			let buf_=document.getElementById(e.keyName);
-			buf_.setAttribute('key_id', e.keyCode)
+			buf_.setAttribute('key_id', e.keyCode);
 			buf_.addEventListener("click", function() {
 				ws.send("key " + buf_.getAttribute('key_id'));
 			});
@@ -106,12 +86,12 @@ function init(){
 			pong = true;
 			return;
 		};
-		if (!authenticated){
-			ws.send('get')
+		if (!builded){
+			ws.send('get');
 		};
-		
+
 		clearTimeout(timerid);
-		authenticated = true;
+		builded = true;
 		showScene(keys);
 
 		if (evt.data.trim()=='') {
@@ -124,29 +104,21 @@ function init(){
 	ws.onclose = function() {
 		showScene(closed);
 	};
-
-
-
 };
-
-
 
 
 
 window.addEventListener("load", function() {
 
 	init();
-//	setInterval(init, 5000);
 
 	setInterval(ping, 5000);
 
 	window.onpopstate = function() {
-		showScene(keys)
+		showScene(keys);
 	};
-	
 
 
-	
 	document.getElementById("reloadbutton").addEventListener("click", function() {
 		location.reload();
 	});
