@@ -64,4 +64,4 @@ class window:
 		self.ws.wait2connect()
 
 if __name__=='__main__':
-	window("ws://192.168.1.237:8081/ws")
+	window("ws://localhost:8081/ws")

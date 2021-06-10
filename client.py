@@ -82,7 +82,7 @@ def restart(ws):
 	time.sleep(0.5)
 
 if __name__ == "__main__":
-	ws=wsc("ws://192.168.1.237:8081/ws")
+	ws=wsc("ws://localhost:8081/ws")
 	thread.start_new_thread(pinger,(ws,))
 	while True:
 		com=input('command: ')
