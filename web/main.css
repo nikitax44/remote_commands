@@ -74,82 +74,12 @@ button:focus {
     max-width: 100%;
 }
 
-#padlabel {
-    color: gray;
-    text-shadow:
-        -1px -1px 0 black,
-        1px -1px 0 black,
-        -1px 1px 0 black,
-        1px 1px 0 black;
-    opacity: 0.08;
-    font-weight: bold;
-    font-size: 4rem;
-}
-
 @media (max-width: 32rem) {
     #padlabel {
         font-size: 13vw;
     }
 }
 
-#pad > button {
-    position: absolute;
-    max-width: 50%;
-    max-height: 50%;
-}
-
-#fullscreenbutton {
-    left: 0;
-    bottom: 0;
-    border-bottom: none;
-    border-left: none;
-}
-
-#keyboardbutton {
-    right: 0;
-    bottom: 0;
-    border-right: none;
-    border-bottom: none;
-}
-
-#keysbutton {
-    left: 0;
-    top: 0;
-    border-top: none;
-    border-left: none;
-}
-
-textarea {
-    flex-grow: 1;
-    border: none;
-    resize: none;
-    font-size: 2rem;
-    background-color: white;
-    color: black;
-    margin: 0;
-    padding: 0 0.5rem;
-}
-
-#sendbutton {
-    border-bottom: none;
-    border-right: none;
-    border-left: none;
-    width: auto;
-    height: 1.5em;
-}
-
-@media (min-aspect-ratio: 4/3) {
-    #keyboard {
-        flex-direction: row;
-    }
-
-    #sendbutton {
-        border-top: none;
-        border-left: 1px solid black;
-        width: 2em;
-        height: auto;
-    }
-}
 
 #keys {
     padding: 0.5rem;

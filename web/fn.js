@@ -1,23 +1,8 @@
 "use strict";
 
 let ws;
-let timerid;
 let builded = false;
-let pong = false;
 
-function ping(){
-	function pong_checker() {
-		if (!pong){
-			location.reload();
-		};
-		pong=false;
-	};
-
-	if (ws.readyState==1){
-		ws.send('ping');
-	}
-	setTimeout(pong_checker, 5000);
-}
 
 function builder(data){
 	let keys=document.getElementById('keys');
@@ -35,6 +20,10 @@ function builder(data){
 		let elem=hor.children[el.pos.x];
 		elem.setAttribute('id', el.keyName);
 		elem.setAttribute('key_id', el.keyCode);
+		elem.addEventListener("click", function() {
+      ws.send("key " + el.keyCode);
+    });
+
 		elem.innerText=el.Name;
 	};
 	function remove_unused(block){
@@ -62,36 +51,26 @@ function init(){
 		});
 	};
 
-	if (ws) {
-		ws.close();
-	};
 
 	showScene(opening);
 
 	function consume(data) {
 		let buf=JSON.parse(data);
 		builder(buf);
-		buf.forEach(function(e) {
-			let buf_=document.getElementById(e.keyName);
-			buf_.setAttribute('key_id', e.keyCode);
-			buf_.addEventListener("click", function() {
-				ws.send("key " + buf_.getAttribute('key_id'));
-			});
-		});
 	};
+
+	let resttimer=setTimeout(() => { // reload if connection is failsed
+		location.reload();
+	}, 10000);
 
 	ws = new WebSocket("ws://"+window.location.hostname+':'+(+window.location.port+1)+'/ws');
 	ws.onmessage = function(evt) {
-		if (evt.data=='pong') {
-			pong = true;
-			return;
-		};
 		if (!builded){
 			ws.send('get');
 		};
 
-		clearTimeout(timerid);
 		builded = true;
+		clearTimeout(resttimer)
 		showScene(keys);
 
 		if (evt.data.trim()=='') {
@@ -101,8 +80,10 @@ function init(){
 			consume(evt.data);
 		};
 	};
+
 	ws.onclose = function() {
 		showScene(closed);
+		location.reload();
 	};
 };
 
@@ -111,8 +92,6 @@ function init(){
 window.addEventListener("load", function() {
 
 	init();
-
-	setInterval(ping, 5000);
 
 	window.onpopstate = function() {
 		showScene(keys);
