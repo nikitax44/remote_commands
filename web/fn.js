@@ -38,8 +38,8 @@ function builder(data){
 		elem.setAttribute('id', el.keyName);
 		elem.setAttribute('key_id', el.keyCode);
 		elem.addEventListener("click", function() {
-      ws.send("key " + el.keyCode);
-    });
+			ws.send("key " + el.keyCode);
+		});
 
 		elem.innerText=el.Name;
 	};
